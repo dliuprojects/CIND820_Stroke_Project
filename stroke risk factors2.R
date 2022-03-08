@@ -1,0 +1,132 @@
+# ================================================ #
+# Title: Stroke Factors:                           #
+#        Classification & Predictive Analytics     #
+# Author: Danyang Liu                              #
+# Student No: 500936348                            #
+# Supervisor: Dr. Ceni Babaoglu                    #
+# Course: CIND820                                  #
+# ================================================ #
+
+# Read dataset
+stroke <- read.csv(file="stroke_1_raw.csv",header=T, sep=",")
+
+# --------------------------------------- #
+# Exploratory Analytics and Data Cleaning #
+# --------------------------------------- #
+
+# Descriptive analysis
+str(stroke)
+summary(stroke)
+
+# Convert 'N/A's (strings) in dataset to NA
+is.na(stroke) <- stroke == "N/A"
+# Count number of NAs in dataset
+sum(is.na(stroke))
+# Count number of NAs in all columns
+colSums(is.na(stroke))
+
+# Count number of 'Unknown's in all columns
+colSums(stroke == "Unknown")
+
+# Remove first column 'id'; irrelevant to data analysis
+stroke <- stroke[2:12]
+
+# Check attribute levels and convert data types to numeric
+# For binary "Yes"/"No" values, "Yes" = 1 and "No" = 2
+str(stroke)
+
+unique(stroke$gender)
+stroke$gender <- gsub("Male", 1, stroke$gender)
+stroke$gender <- gsub("Female", 2, stroke$gender)
+stroke$gender <- gsub("Other", 3, stroke$gender)
+stroke$gender <- as.numeric(stroke$gender)
+unique(stroke$gender)
+# 
+# unique(stroke$ever_married)
+# stroke$ever_married <- gsub("Yes", 1, stroke$ever_married)
+# stroke$ever_married <- gsub("No", 0, stroke$ever_married)
+# stroke$ever_married <- as.numeric(stroke$ever_married)
+# unique(stroke$ever_married)
+# 
+# unique(stroke$work_type)
+# stroke$work_type <- gsub("Private", 1, stroke$work_type)
+# stroke$work_type <- gsub("Self-employed", 2, stroke$work_type)
+# stroke$work_type <- gsub("Govt_job", 3, stroke$work_type)
+# stroke$work_type <- gsub("children", 4, stroke$work_type)
+# stroke$work_type <- gsub("Never_worked", 5, stroke$work_type)
+# stroke$work_type <- as.numeric(stroke$work_type)
+# unique(stroke$work_type)
+# 
+# unique(stroke$Residence_type)
+# stroke$Residence_type <- gsub("Urban", 1, stroke$Residence_type)
+# stroke$Residence_type <- gsub("Rural", 2, stroke$Residence_type)
+# stroke$Residence_type <- as.numeric(stroke$Residence_type)
+# unique(stroke$Residence_type)
+
+stroke$bmi <- as.numeric(stroke$bmi)
+
+# unique(stroke$smoking_status)
+# stroke$smoking_status <- gsub("formerly smoked", 1, stroke$smoking_status)
+# stroke$smoking_status <- gsub("never smoked", 2, stroke$smoking_status)
+# stroke$smoking_status <- gsub("smokes", 3, stroke$smoking_status)
+# stroke$smoking_status <- gsub("Unknown", 4, stroke$smoking_status)
+# stroke$smoking_status <- as.numeric(stroke$smoking_status)
+# unique(stroke$smoking_status)
+
+# Assign "No Stroke" and "Stroke" labels for Stroke attribute
+stroke$stroke <- ifelse(stroke$stroke == 0, "No Stroke", "Stroke")
+# Assign Stroke values as factor levels
+stroke$stroke <- as.factor(stroke$stroke)
+
+# Check that all attributes are now numeric data types
+str(stroke)
+
+# Deal with NAs
+# Method 1: remove NAs
+stroke_noNAs <- stroke[complete.cases(stroke), ]
+# Method 2: replace NAs with values using k-NN algorithm?
+
+# Leave outliers as is
+
+# Examine correlations between all Independent Variables
+cor(stroke_noNAs[1:10])
+
+# Normalize continuous numeric variables
+# Such as age, avg_blood_glucose, and bmi
+# Using z-score methods
+stroke_noNAs$age <- (stroke_noNAs$age - mean(stroke_noNAs$age))/sd(stroke_noNAs$age)
+stroke_noNAs$avg_glucose_level <- (stroke_noNAs$avg_glucose_level - mean(stroke_noNAs$avg_glucose_level))/sd(stroke_noNAs$avg_glucose_level)
+stroke_noNAs$bmi <- (stroke_noNAs$bmi - mean(stroke_noNAs$bmi))/sd(stroke_noNAs$bmi)
+
+# -------------- #
+# Classification #
+# -------------- #
+
+
+
+# ----------------------------------------- #
+# Predictive Analytics: Logistic Regression #
+# ----------------------------------------- #
+# Split dataset into 70% training, 30% testing sets
+stroke_index2 <- sample(1:nrow(stroke_noNAs), 0.7 * nrow(stroke_noNAs))
+
+# Assign selected sample as training set
+# Assign leftover dataset as test set
+train.set2 <- stroke_noNAs[stroke_index2,]
+test.set2 <- stroke_noNAs[-stroke_index2,]
+
+# Logistic regression model for prediction
+glm_model2 <- glm(formula = stroke~., data = train.set2, family = "binomial")
+summary(glm_model2)
+
+
+# ------------------ #
+# Evaluation Metrics #
+# ------------------ #
+predicted2 <- predict(glm_model2, test.set2, type = "response")
+# Setting 0.5 as threshold - binary prediction
+predicted_class2 <- ifelse(predicted2 >= 0.5, "Stroke", "No Stroke")
+ConfusionMatrix2 <- table(actual = test.set2$stroke, predicted = predicted_class2)
+ConfusionMatrix2
+str(predicted2)
+summary(predicted2)

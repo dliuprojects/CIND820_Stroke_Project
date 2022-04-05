@@ -30,7 +30,10 @@ summary(stroke) # Can see that max bmi value is 97.60
 # This will be subsequently converted back as NA value in
 # Python code
 stroke[is.na(stroke)] <- 5000
-# Count how many 5000 values are in dataset (should be 201)
+# Count how many 5000 values are in dataset
+# Should be 201 - ie. there are no '5000' anywhere in the
+# Original dataset, '5000' has now completely replaced the
+# 201 null values (NAs)
 sum(stroke==5000)
 
 # Save the NA-converted-to-5000 file as preprocessed dataset
